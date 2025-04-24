@@ -67,7 +67,10 @@ async def get_data_month_or_day(message: types.Message, symbol: list):
                                            "-" * 30, summa),
                                    parse_mode='html')
     else:
-        await bot.send_message(message.chat.id, phrase(report_now[1]), parse_mode='html')
+        if symbol[1] == 'day':
+            await bot.send_message(message.chat.id, phrase(report_now[3]), parse_mode='html')
+        else:
+            await bot.send_message(message.chat.id, phrase(report_month[3]), parse_mode='html')
 
 
 @router.message(Command('start'))

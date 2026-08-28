@@ -1,0 +1,13 @@
+.env
+data_base/telegram.db
+Dockerfile
+Dockerfile.save
+test.py
+test
+date_today_last.py
+data_base/__pycache__
+.idea
+venv
+bot.log
+.gigaide
+

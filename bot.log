@@ -1,0 +1,26 @@
+2026-08-26 21:16:23,955 [INFO] Бот запущен
+2026-08-26 21:16:23,957 [INFO] Start polling
+2026-08-26 21:16:45,027 [INFO] Polling stopped
+2026-08-26 21:17:40,361 [INFO] Бот запущен
+2026-08-26 21:17:40,361 [INFO] Start polling
+2026-08-26 21:18:01,403 [INFO] Polling stopped
+2026-08-26 21:40:29,227 [INFO] Бот запущен
+2026-08-26 21:40:29,227 [INFO] Start polling
+2026-08-26 21:40:50,280 [INFO] Polling stopped
+2026-08-26 21:42:30,958 [INFO] Бот запущен
+2026-08-26 21:42:30,958 [INFO] Start polling
+2026-08-26 21:42:52,006 [INFO] Polling stopped
+2026-08-28 21:31:03,332 [INFO] Бот запущен
+2026-08-28 21:31:03,332 [INFO] Start polling
+2026-08-28 21:31:03,774 [INFO] Run polling for bot @sfkasnfn_bot id=5906944865 - 'Учёт расходов'
+2026-08-28 21:32:33,483 [INFO] Update id=245837255 is handled. Duration 472 ms by bot id=5906944865
+2026-08-28 21:32:40,279 [INFO] Update id=245837256 is handled. Duration 108 ms by bot id=5906944865
+2026-08-28 21:32:41,729 [INFO] Update id=245837257 is handled. Duration 127 ms by bot id=5906944865
+2026-08-28 21:32:43,213 [INFO] Update id=245837258 is handled. Duration 174 ms by bot id=5906944865
+2026-08-28 21:45:29,061 [ERROR] Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2026-08-28 21:45:29,061 [WARNING] Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 5906944865)
+2026-08-28 21:45:45,641 [INFO] Connection established (tryings = 1, bot id = 5906944865)
+2026-08-28 22:09:36,212 [INFO] Polling stopped
+2026-08-28 22:09:36,214 [ERROR] Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-08-28 22:09:36,215 [WARNING] Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 5906944865)
+2026-08-28 22:09:36,482 [INFO] Polling stopped for bot @sfkasnfn_bot id=5906944865 - 'Учёт расходов'

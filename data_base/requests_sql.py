@@ -1,10 +1,12 @@
 # import datetime
+import logging
 import sqlite3
 
 
 class DataBase:
-    base = sqlite3.connect('data_base/telegram.db')
-    cur = base.cursor()
+    def __init__(self):
+        self.base = sqlite3.connect('telegram.db')
+        self.cur = self.base.cursor()
 
     def start_data(self, name_id):
         self.cur.execute(
@@ -30,7 +32,7 @@ class DataBase:
             )
             my_coast, my_price = price, coast
         else:
-            print('Ошибка ввода статьи затрат!')
+            logging.warning('Некорректный ввод: coast или price не являются строкой/числом')
         self.cur.execute(
             f'INSERT INTO {name_user} VALUES(?, ?, ?)', data
         )
@@ -54,7 +56,9 @@ class DataBase:
         for rep in self.cur.fetchall():
             product = 'на ' + rep[0].lower() + ': ' + str(int(rep[1])) + ' руб.'
             name_price.append(product)
-        self.cur.execute(
+
+        cur2 = self.base.cursor()
+        cur2.execute(
             f"""SELECT coast, SUM(price) as all_price
                FROM {name_user}
                WHERE 
@@ -65,7 +69,8 @@ class DataBase:
                		END 
             """
         )
-        report = self.cur.fetchone()
+        report = cur2.fetchone()
+        cur2.close()
         self.base.commit()
         return '\n'.join(name_price), (int(report[1]) if report[1] is not None else None)
 
@@ -78,6 +83,8 @@ class DataBase:
                            FROM {})""".format(name_user, name_user)
         )
         last_record = self.cur.fetchone()
+        if last_record is None:
+            raise ValueError('Нет записей для удаления')
         self.cur.execute(
             """
             DELETE FROM {} 
@@ -104,3 +111,7 @@ class DataBase:
         )
 
         self.base.commit()
+
+    def close(self):
+        self.cur.close()
+        self.base.close()

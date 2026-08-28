@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 import os
 import emoji
 from aiogram import Bot, Dispatcher, types, Router
@@ -7,9 +8,25 @@ from aiogram.filters import Command
 from aiogram.types import BufferedInputFile
 from dotenv import load_dotenv, find_dotenv
 from data_base.requests_sql import DataBase
+from aiogram.client.session.aiohttp import AiohttpSession
+import aiohttp
 
 load_dotenv(find_dotenv())
-bot = Bot(os.getenv('TOKEN'))
+login = os.getenv('LOGIN_PROXY')
+password = os.getenv('PASS_PROXY')
+proxy_url = os.getenv('URL_PROXY')
+
+if "://" in proxy_url:
+    schema, address = proxy_url.split("://", 1)
+    authenticated_proxy = f"{schema}://{login}:{password}@{address}"
+else:
+    authenticated_proxy = f"http://{login}:{password}@{proxy_url}"
+
+# В aiogram 3.x передаем только параметр proxy
+session = AiohttpSession(proxy=authenticated_proxy)
+
+
+bot = Bot(os.getenv('TOKEN'), session=session)
 
 dp = Dispatcher()
 router = Router()
@@ -133,7 +150,7 @@ async def del_last_record(message: types.Message):
         last_record = DataBase().del_data(message.from_user.first_name)
         await bot.send_message(message.chat.id, f'Запись <em>{last_record}</em> - удалена!', parse_mode='html')
     except Exception as ex:
-        print(ex)
+        logging.exception('Не удалось удалить последнюю запись')
         await bot.send_message(message.chat.id, phrase(), parse_mode='html')
 
 
@@ -190,7 +207,7 @@ async def enter_expenditure(message: types.Message):
         await bot.send_message(message.chat.id,
                                f'Сегодня Вы потратили на {answer[0].lower()}: {answer[1]} руб.')
     except Exception as ex:
-        print(ex)
+        logging.exception('Ошибка при записи расхода')
         await bot.send_message(message.chat.id,
                                'Введите правильно статью расходов!\n"Например: <em><u>продукты 500</u></em> \n'
                                'или <em><u>бензин 3000</u></em>"',
@@ -198,7 +215,16 @@ async def enter_expenditure(message: types.Message):
 
 
 async def main():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        filename='bot.log',
+        filemode='a'
+    )
+    logging.info('Бот запущен')
     await dp.start_polling(bot)
+    db = DataBase()
+    db.close()
 
 
 if __name__ == '__main__':

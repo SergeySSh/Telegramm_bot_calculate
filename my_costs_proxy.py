@@ -11,6 +11,7 @@ from data_base.requests_sql import DataBase
 from aiogram.client.session.aiohttp import AiohttpSession
 import aiohttp
 
+
 load_dotenv(find_dotenv())
 login = os.getenv('LOGIN_PROXY')
 password = os.getenv('PASS_PROXY')

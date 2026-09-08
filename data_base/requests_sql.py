@@ -1,16 +1,24 @@
 # import datetime
 import logging
+import re
 import sqlite3
+
+
+def _safe_table_name(name: str) -> str:
+    """Защищает имя таблицы от SQL-инъекции, удаляя опасные символы."""
+    name = re.sub(r'[^a-zA-Zа-яА-ЯёЁ0-9_]', '_', name)
+    return name
 
 
 class DataBase:
     def __init__(self):
-        self.base = sqlite3.connect('telegram.db')
+        self.base = sqlite3.connect('data_base/telegram.db')
         self.cur = self.base.cursor()
 
     def start_data(self, name_id):
+        safe_name = _safe_table_name(name_id)
         self.cur.execute(
-            f'CREATE TABLE IF NOT EXISTS {name_id} (coast text, price real, date)'
+            f'CREATE TABLE IF NOT EXISTS {safe_name} (coast text, price real, date)'
         )
         self.base.commit()
 
@@ -33,22 +41,25 @@ class DataBase:
             my_coast, my_price = price, coast
         else:
             logging.warning('Некорректный ввод: coast или price не являются строкой/числом')
+            return my_coast, my_price
+        safe_name = _safe_table_name(name_user)
         self.cur.execute(
-            f'INSERT INTO {name_user} VALUES(?, ?, ?)', data
+            f'INSERT INTO {safe_name} VALUES(?, ?, ?)', data
         )
         self.base.commit()
         return my_coast, my_price
 
     def get_data(self, name_user, val_date):
+        safe_name = _safe_table_name(name_user)
         self.cur.execute(
             f"""SELECT coast, SUM(price) as all_price
-               FROM {name_user}
+               FROM {safe_name}
                WHERE 
                CASE 
-	               	WHEN length('{val_date}') == 10 THEN strftime('%Y-%m-%d', date) == '{val_date}'
-               		WHEN length('{val_date}') == 7 THEN strftime('%Y-%m', date) == '{val_date}'
-               		ELSE strftime('%Y', date) == '{val_date}'
-               		END 
+	               WHEN length('{val_date}') == 10 THEN strftime('%Y-%m-%d', date) == '{val_date}'
+	               WHEN length('{val_date}') == 7 THEN strftime('%Y-%m', date) == '{val_date}'
+	               ELSE strftime('%Y', date) == '{val_date}'
+	               END 
                GROUP BY coast"""
         )
 
@@ -60,13 +71,13 @@ class DataBase:
         cur2 = self.base.cursor()
         cur2.execute(
             f"""SELECT coast, SUM(price) as all_price
-               FROM {name_user}
+               FROM {safe_name}
                WHERE 
                CASE 
-	               	WHEN length('{val_date}') == 10 THEN strftime('%Y-%m-%d', date) == '{val_date}'
-               		WHEN length('{val_date}') == 7 THEN strftime('%Y-%m', date) == '{val_date}'
-               		ELSE strftime('%Y', date) == '{val_date}'
-               		END 
+	               WHEN length('{val_date}') == 10 THEN strftime('%Y-%m-%d', date) == '{val_date}'
+	               WHEN length('{val_date}') == 7 THEN strftime('%Y-%m', date) == '{val_date}'
+	               ELSE strftime('%Y', date) == '{val_date}'
+	               END 
             """
         )
         report = cur2.fetchone()
@@ -75,39 +86,33 @@ class DataBase:
         return '\n'.join(name_price), (int(report[1]) if report[1] is not None else None)
 
     def del_data(self, name_user):
+        safe_name = _safe_table_name(name_user)
         self.cur.execute(
-            """
-            SELECT coast, price 
-            FROM {} 
-            WHERE date == (SELECT MAX(date) as time 
-                           FROM {})""".format(name_user, name_user)
+            f"""SELECT coast, price 
+            FROM {safe_name} 
+            WHERE date == (SELECT MAX(date) as time FROM {safe_name})"""
         )
         last_record = self.cur.fetchone()
         if last_record is None:
             raise ValueError('Нет записей для удаления')
         self.cur.execute(
-            """
-            DELETE FROM {} 
-            WHERE date == (SELECT MAX(date) as time 
-                           FROM {})""".format(name_user, name_user)
+            f"""DELETE FROM {safe_name} 
+            WHERE date == (SELECT MAX(date) as time FROM {safe_name})"""
         )
         self.base.commit()
         return last_record[0].lower() + ' ' + str(int(last_record[1]))
 
     def del_data_all(self, name_user):
+        safe_name = _safe_table_name(name_user)
+        safe_dup = safe_name + '_DUPLICATE'
         self.cur.execute(
-            """
-            CREATE TABLE IF NOT EXISTS {}_DUPLICATE(coast text, price real, date)""".format(name_user)
+            f'CREATE TABLE IF NOT EXISTS {safe_dup} (coast text, price real, date)'
         )
         self.cur.execute(
-            """
-            INSERT INTO {}_DUPLICATE
-                    SELECT coast, price, date
-                    FROM {}""".format(name_user, name_user)
+            f'INSERT INTO {safe_dup} SELECT coast, price, date FROM {safe_name}'
         )
         self.cur.execute(
-            """
-            DELETE FROM {}""".format(name_user)
+            f'DELETE FROM {safe_name}'
         )
 
         self.base.commit()
